@@ -1,1 +1,7 @@
-hello                   Hello, World!
+copypaste               A function to import excel files as quickly as
+                        possible, the use of Addins is also highly
+                        recommended
+libraries               compile all libraries in a ".R" file, even if
+                        is not installed
+r.args                  Write all arguments and its values from a
+                        function
