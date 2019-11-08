@@ -1,5 +1,5 @@
-copypaste               A function to import excel files as quickly as
-                        possible, the use of Addins is also highly
+copypaste               A function to import copied data in R via
+                        clipboard, the use of Addins is also highly
                         recommended
 libraries               compile all libraries in a ".R" file, even if
                         is not installed

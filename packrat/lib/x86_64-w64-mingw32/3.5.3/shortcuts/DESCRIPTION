@@ -1,12 +1,16 @@
 Package: shortcuts
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: Read copied data into R's global enviroment with addins
+Version: 1.0.0
+Author: José Carlos Del Valle <jcval94@gmail.com>
+Maintainer: José Carlos Del Valle <jcval94@gmail.com>
+Description: Read excel or any copied data (table) separated by tabs by creating and opening a notepad file whose content will be automatically read after saving the file, also useful commands to return arguments of a function and run all libraries written in a R Script. The use of Addins is highly recommended as a shortcut.
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Built: R 3.5.3; ; 2019-11-08 10:45:07 UTC; windows
+Depends: R (>= 3.2.0), rstudioapi
+Imports: utils
+RoxygenNote: 6.1.1
+URL: https://github.com/jcval94/shortcuts
+BugReports: https://github.com/jcval94/shortcuts/issues
+Built: R 3.5.3; ; 2019-11-08 11:16:20 UTC; windows
