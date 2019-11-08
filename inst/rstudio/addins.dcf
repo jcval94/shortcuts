@@ -1,0 +1,14 @@
+Name: Copy Paste
+Description: Open a txt and read the content into R's enviroment
+Binding: copypaste
+Interactive: false
+
+Name: Read Arguments
+Description: Write all arguments of a selected function
+Binding: r.args
+Interactive: false
+
+Name: Libraries
+Description: Run all libraries in a R document
+Binding: libraries
+Interactive: false
