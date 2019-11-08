@@ -8,18 +8,11 @@
 #'
 #' n=100;mean=1;sd=0
 #'
-#'
-#'
 r.args<-function(){
   ctx <- rstudioapi::getActiveDocumentContext()
   if (!is.null(ctx)) {
     if (ctx$selection[[1]]$text != "") {
       bits<-ctx$selection[[1]]$text
-      # bits <- utils::read.csv(text = ctx$selection[[1]]$text,
-      #                          stringsAsFactors = FALSE, header = FALSE)
-      # bits <- unlist(bits, use.names = FALSE)
-      #REMOVE PARENTHESIS
-      #print(bits)
       fun<-strsplit(bits,split = "[(]")[[1]]
       if(length(fun)>2){
         fun[2]<-paste0(fun[-1],collapse = "(")
@@ -40,13 +33,11 @@ r.args<-function(){
           if(substr(fun[2],nchar(fun[2]),nchar(fun[2]))==")"){
             fun[2]<-substr(fun[2],1,nchar(fun[2])-1)
           }
-          #Separa las comas sii no están entre paréntesis
           sr<-strsplit(fun[2],"")[[1]]
           p1<-(1:length(sr))[sr=="("]
           p2<-(1:length(sr))[sr==")"]
           c1<-(1:length(sr))[sr==","]
           ss<-ss2<-c()
-
           for(i in 1:length(c1)){ss<-c()
             for(k in 1:(length(p1))){
               app<-c1[i]>p1[k] & c1[i] <p2[k]
@@ -82,7 +73,6 @@ r.args<-function(){
                 extr<-data.frame(A=arg_rellenados,B=paste0(arg_rellenados,"=",valores_sin_arg))
               }
             }
-            # args_no_escritos<-args_no_escritos[1:(length(args)-length(values[!cond]))]
           }
           if(length(values[!cond])>0){
             we<-rbind(writ,extr)
@@ -91,7 +81,6 @@ r.args<-function(){
           levels(run[[1]])<-args
           run<-run[order(run[[1]]),]
           run<-(paste0(run[[2]],collapse=";"))
-          # run<-paste0(run,"\n")
           rstudioapi::modifyRange(ctx$selection[[1]]$range,
                                   paste0(bits,"\n",run))
         }
@@ -99,4 +88,5 @@ r.args<-function(){
       }
     }
   }
+  return(invisible())
 }
