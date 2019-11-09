@@ -33,6 +33,7 @@ browser, excel, google sheets, etc.
 
 ``` r
 library(shortcuts)
+#> Loading required package: rstudioapi
 ## Not run
 # shortcuts()
 ```
@@ -95,7 +96,6 @@ Finally, libraries() function run all libraries written in a R Script
 (and installs the package if it does not exist)
 
 ``` r
-
 # libraries()
 # 
 # library(stats)

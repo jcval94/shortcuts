@@ -111,11 +111,9 @@ Finally, libraries() function run all libraries written in a R Script (and insta
 
 
 ```{r libss}
-
 # libraries()
 # 
 # library(stats)
-
 
 ```
 
