@@ -1,11 +1,11 @@
 Package: shortcuts
 Type: Package
-Title: Useful shortcuts to interact with R Scripts, R's global
-        enviroment and external data
-Version: 1.0.0
+Title: Useful Shortcuts to Interact with R Scripts, R's Global
+        Environment and External Data
+Version: 1.1.0
 Author: José Carlos Del Valle <jcval94@gmail.com>
 Maintainer: José Carlos Del Valle <jcval94@gmail.com>
-Description: Integrates clipboard copied data in R, reads and installs libraries within a R's script and returns all valid arguments of a given function
+Description: Integrates clipboard copied data in R, reads and installs libraries within a script and returns all valid arguments of a given function.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -14,4 +14,4 @@ Imports: utils
 RoxygenNote: 6.1.1
 URL: https://github.com/jcval94/shortcuts
 BugReports: https://github.com/jcval94/shortcuts/issues
-Built: R 3.5.3; ; 2019-11-11 10:48:36 UTC; windows
+Built: R 3.5.3; ; 2019-11-11 15:11:10 UTC; windows

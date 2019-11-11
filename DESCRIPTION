@@ -1,10 +1,10 @@
 Package: shortcuts
 Type: Package
-Title: Useful Shortcuts to Interact with R Scripts, R's Global Environment and External Data.
+Title: Useful Shortcuts to Interact with R Scripts, R's Global Environment and External Data
 Version: 1.1.0
 Author: José Carlos Del Valle <jcval94@gmail.com>
 Maintainer: José Carlos Del Valle <jcval94@gmail.com>
-Description: Integrates clipboard copied data in R, reads and installs libraries within a R's script and returns all valid arguments of a given function.
+Description: Integrates clipboard copied data in R, reads and installs libraries within a script and returns all valid arguments of a given function.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
