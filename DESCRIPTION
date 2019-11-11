@@ -1,10 +1,10 @@
 Package: shortcuts
 Type: Package
-Title: Read copied data into R's global enviroment with addins
+Title: Useful shortcuts to interact with R Scripts, R's global enviroment and external data.
 Version: 1.0.0
 Author: José Carlos Del Valle <jcval94@gmail.com>
 Maintainer: José Carlos Del Valle <jcval94@gmail.com>
-Description: Read excel or any copied data (table) separated by tabs by creating and opening a notepad file whose content will be automatically read after saving the file, also useful commands to return arguments of a function and run all libraries written in a R Script. The use of Addins is highly recommended as a shortcut.
+Description: Integrates clipboard copied data in R, reads and installs libraries within a R's script and returns all valid arguments of a given function.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
