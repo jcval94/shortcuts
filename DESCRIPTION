@@ -1,6 +1,6 @@
 Package: shortcuts
 Type: Package
-Title: Useful shortcuts to interact with R Scripts, R's global enviroment and external data.
+Title: Useful Shortcuts to Interact with R Scripts, R's Global Environment and External Data.
 Version: 1.1.0
 Author: José Carlos Del Valle <jcval94@gmail.com>
 Maintainer: José Carlos Del Valle <jcval94@gmail.com>
