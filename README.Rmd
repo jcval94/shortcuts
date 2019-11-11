@@ -102,7 +102,7 @@ Select text string of a function in the R Script and run:
 # 
 # rnorm(n=1+1)
 # n=1+1;mean=0;sd=1
-
+#
 ```
 
 ### libraries
