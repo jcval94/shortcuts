@@ -7,7 +7,7 @@
 
 <!-- badges: end -->
 
-The goal of shortcuts is to accelerate copyed data reading in R
+The goal of shortcuts is to accelerate code writting in R via addins.
 
 ## Installation
 
@@ -38,12 +38,12 @@ library(shortcuts)
 # shortcuts()
 ```
 
-Now paste the table into the notepad and save it (Ctrl + S)
+Now press Copy Paste in Addins menu
 
 Check your data with new\_df
 
 ``` r
-#>new_df
+#>x
 
 #      z  X.0.00  X.0.01  X.0.02  X.0.03  X.0.04  X.0.05
 # 1  0.0 0.00000 0.00399 0.00798 0.01197 0.01595 0.01994
@@ -88,6 +88,7 @@ Select text string of a function in the R Script and run:
 # 
 # rnorm(n=1+1)
 # n=1+1;mean=0;sd=1
+#
 ```
 
 ### libraries

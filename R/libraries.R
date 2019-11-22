@@ -8,9 +8,20 @@
 #'
 #' @examples
 #'
-#' library(stats)
+#' #Copy and paste all the following code in RStudio
 #'
-#' #libraries()
+#' loaded_pkgs<-(.packages())
+#'
+#' #Not run
+#' #library(ggplot2)
+#' #library(dplyr)
+#'
+#' libraries()
+#'
+#' loaded_pkgs2<-(.packages())
+#'
+#' loaded_pkgs2[!loaded_pkgs2 %in% loaded_pkgs]
+#' #"dplyr"   "ggplot2"
 #'
 libraries<-function(){
   ctx<-rstudioapi::getActiveDocumentContext()
@@ -47,6 +58,5 @@ libraries<-function(){
     if(length(libs_installed[!ins])) try(install.packages(c(libs_installed[!ins]),repos = "http://cran.rstudio.com/",dependencies = TRUE),silent = T)
     lapply(libs_installed,function(x){try(library(x,character.only=TRUE),silent = T)})
     return(invisible())
-
   }
 }
