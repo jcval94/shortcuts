@@ -24,6 +24,11 @@ remotes::install_git("https://github.com/jcval94/shortcuts.git")
 
 ### shortcuts
 
+Find Addins menu on the second bar of RStudio or create a shortcut to be
+faster
+
+![SHORTCUTS Addins](man/figures/short.png)
+
 This is a basic example which shows you how to solve a common problem:
 
 First, it is necessary to copy a table using Ctrl + C directly from your
@@ -36,13 +41,11 @@ browser, excel, google sheets, etc.
 ``` r
 library(shortcuts)
 #> Loading required package: rstudioapi
-## Not run
-# shortcuts()
 ```
 
-Now press Copy Paste in Addins menu
+Now press Copy Paste in Addins menu or run copypaste()
 
-Check your data with new\_df
+Check your data in x object
 
 ``` r
 #>x
@@ -100,10 +103,4 @@ Finally, libraries() function run all libraries written in a R Script
 
 ``` r
 # libraries()
-# 
-# library(stats)
 ```
-
-Also you can use Addins to create a shortcut and be faster
-
-![SHORTCUTS Addins](man/figures/short.png)
