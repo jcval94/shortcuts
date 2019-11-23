@@ -4,7 +4,7 @@ Title: Useful Shortcuts to Interact with 'RStudio' Scripts
 Version: 1.2.0
 Author: José Carlos Del Valle <jcval94@gmail.com>
 Maintainer: José Carlos Del Valle <jcval94@gmail.com>
-Description: Integrates clipboard copied data in R, loads and installs libraries within a R script and returns all valid arguments of a given function.
+Description: Integrates clipboard copied data in R Studio, loads and installs libraries within a R script and returns all valid arguments of a selected function.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
