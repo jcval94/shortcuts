@@ -19,7 +19,7 @@ Displays all arguments and its values from a selected R function
 #Select the following line of code & push Addins -> shortcuts / Read Arguments
 rnorm(n=100)
 
-#Result
-n=100;mean=1;sd=0
+#The result is shown in the line under the selected code
+#n=100;mean=1;sd=0
 
 }
