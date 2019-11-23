@@ -103,3 +103,5 @@ Finally, libraries() function run all libraries written in a R Script
 ```
 
 Also you can use Addins to create a shortcut and be faster
+
+![SHORTCUTS Addins](man/figures/short.png)
