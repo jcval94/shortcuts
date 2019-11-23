@@ -1,7 +1,7 @@
-#' A function to import copied data in R via clipboard, the use of Addins is also highly recommended
+#' A function to import copied data in RStudio via clipboard, the use of Addins is also highly recommended
 #'
 #'
-#' @return A data frame object called "x" in .GlobalEnv
+#' @return A data frame object named "x" in .GlobalEnv
 #' @export
 #'
 #' @importFrom utils read.table
@@ -13,10 +13,10 @@
 #' #Copy (Ctrl+C) a excel/google sheets/ online table such as:
 #' #https://en.wikipedia.org/wiki/Standard_normal_table
 #'
-#' #Run
+#' #Run or push Addins -> shortcuts / Copy Paste
 #' #copypaste()
 #'
-#' #Check your data
+#' #Check your data by pushing x
 #' #x
 #'
 copypaste<-function(){
@@ -27,7 +27,7 @@ copypaste<-function(){
       assign("x", df, envir=as.environment(pos) )
     }
     sMSG<-suppressWarnings(try(expr = assign_to_global()
-                         ,silent = TRUE))
+                               ,silent = TRUE))
     print(head(sMSG))
   }
   return(invisible())
