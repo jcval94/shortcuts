@@ -1,4 +1,4 @@
-#' compile all libraries in a ".R" file, even if is not installed
+#' Compiles and installs all libraries in the current RStudio script
 #'
 #' @return libraries compiled
 #' @export
@@ -20,6 +20,7 @@
 #'
 #' loaded_pkgs2<-(.packages())
 #'
+#' #New loaded packages
 #' loaded_pkgs2[!loaded_pkgs2 %in% loaded_pkgs]
 #' #"dplyr"   "ggplot2"
 #'
