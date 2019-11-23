@@ -1,6 +1,6 @@
 Package: shortcuts
 Type: Package
-Title: Useful Shortcuts to Interact with R Scripts, R's Global Environment and External Data
+Title: Useful Shortcuts to Interact with 'RStudio' Scripts
 Version: 1.1.0
 Author: José Carlos Del Valle <jcval94@gmail.com>
 Maintainer: José Carlos Del Valle <jcval94@gmail.com>
@@ -8,7 +8,7 @@ Description: Integrates clipboard copied data in R, reads and installs libraries
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Depends: R (>= 3.2.0), rstudioapi
+Depends: R (>= 3.5.0), rstudioapi
 Imports: utils
 RoxygenNote: 6.1.1
 URL: https://github.com/jcval94/shortcuts
