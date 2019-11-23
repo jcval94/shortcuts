@@ -31,6 +31,8 @@ browser, excel, google sheets, etc.
 
 <https://en.wikipedia.org/wiki/Standard_normal_table>
 
+![Copy Addins](man/figures/copypste.png)
+
 ``` r
 library(shortcuts)
 #> Loading required package: rstudioapi
