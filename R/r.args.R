@@ -9,12 +9,12 @@
 #' #Select the following line of code & push Addins -> shortcuts / Read Arguments
 #' rnorm(n=100)
 #' 
-#' #Result
-#' n=100;mean=1;sd=0
+#' #The result is shown in the line under the selected code
+#' #n=100;mean=1;sd=0
 #'
 r.args<-function(){
-  ctx <- rstudioapi::getActiveDocumentContext()
-  if (!is.null(ctx)) {
+  ctx <- try(rstudioapi::getActiveDocumentContext(),silent=TRUE)
+  if (!inherits(ctx,"try-error")) {
     if (ctx$selection[[1]]$text != "") {
       bits<-ctx$selection[[1]]$text
       fun<-strsplit(bits,split = "[(]")[[1]]

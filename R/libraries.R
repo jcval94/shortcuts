@@ -25,8 +25,8 @@
 #' #"dplyr"   "ggplot2"
 #'
 libraries<-function(){
-  ctx<-rstudioapi::getActiveDocumentContext()
-  if (!is.null(ctx)){
+  ctx<-try(rstudioapi::getActiveDocumentContext(),silent=TRUE)
+  if (!inherits(ctx,"try-error")){
     contenido<-ctx[["contents"]]
     contenido<-contenido[nchar(contenido)!= 0]
     libr<-nchar(contenido)-as.integer(sapply(contenido,function(x)nchar(gsub("library","",x))))
