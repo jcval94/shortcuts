@@ -2,7 +2,7 @@
 % Please edit documentation in R/r.args.R
 \name{r.args}
 \alias{r.args}
-\title{Write all arguments and its values from a function}
+\title{Displays all arguments and its values from a selected R function}
 \usage{
 r.args()
 }
@@ -10,12 +10,16 @@ r.args()
 arguments ready to run
 }
 \description{
-Write all arguments and its values from a function
+Displays all arguments and its values from a selected R function
 }
 \examples{
 
+#Copy and paste the following code in RStudio
+
+#Select the following line of code & push Addins -> shortcuts / Read Arguments
 rnorm(n=100)
 
+#Result
 n=100;mean=1;sd=0
 
 }

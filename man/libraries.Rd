@@ -2,7 +2,7 @@
 % Please edit documentation in R/libraries.R
 \name{libraries}
 \alias{libraries}
-\title{compile all libraries in a ".R" file, even if is not installed}
+\title{Compiles and installs all libraries in the current RStudio script}
 \usage{
 libraries()
 }
@@ -10,12 +10,24 @@ libraries()
 libraries compiled
 }
 \description{
-compile all libraries in a ".R" file, even if is not installed
+Compiles and installs all libraries in the current RStudio script
 }
 \examples{
 
-library(stats)
+#Copy and paste all the following code in RStudio
 
-#libraries()
+loaded_pkgs<-(.packages())
+
+#Not run
+#library(ggplot2)
+#library(dplyr)
+
+libraries()
+
+loaded_pkgs2<-(.packages())
+
+#New loaded packages
+loaded_pkgs2[!loaded_pkgs2 \%in\% loaded_pkgs]
+#"dplyr"   "ggplot2"
 
 }

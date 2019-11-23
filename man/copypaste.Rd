@@ -2,25 +2,25 @@
 % Please edit documentation in R/copypaste.R
 \name{copypaste}
 \alias{copypaste}
-\title{A function to import copied data in R via clipboard, the use of Addins is also highly recommended}
+\title{A function to import copied data in RStudio via clipboard, the use of Addins is also highly recommended}
 \usage{
 copypaste()
 }
 \value{
-A data frame object called "x" in .GlobalEnv
+A data frame object named "x" in .GlobalEnv
 }
 \description{
-A function to import copied data in R via clipboard, the use of Addins is also highly recommended
+A function to import copied data in RStudio via clipboard, the use of Addins is also highly recommended
 }
 \examples{
 
 #Copy (Ctrl+C) a excel/google sheets/ online table such as:
 #https://en.wikipedia.org/wiki/Standard_normal_table
 
-#Run
+#Run or push Addins -> shortcuts / Copy Paste
 #copypaste()
 
-#Check your data
+#Check your data by pushing x
 #x
 
 }

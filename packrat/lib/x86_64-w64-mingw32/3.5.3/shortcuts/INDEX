@@ -1,7 +1,7 @@
-copypaste               A function to import copied data in R via
+copypaste               A function to import copied data in RStudio via
                         clipboard, the use of Addins is also highly
                         recommended
-libraries               compile all libraries in a ".R" file, even if
-                        is not installed
-r.args                  Write all arguments and its values from a
-                        function
+libraries               Compiles and installs all libraries in the
+                        current RStudio script
+r.args                  Displays all arguments and its values from a
+                        selected R function

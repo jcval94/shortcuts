@@ -39,6 +39,7 @@ First, it is necessary to copy a table using Ctrl + C directly from your browser
 
 https://en.wikipedia.org/wiki/Standard_normal_table
 
+![Copy Addins](man/figures/copypste.png)
 
 
 ```{r example}
