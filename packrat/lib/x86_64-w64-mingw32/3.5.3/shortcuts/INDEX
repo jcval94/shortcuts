@@ -2,6 +2,7 @@ copypaste               A function to import copied data in RStudio via
                         clipboard, the use of Addins is also highly
                         recommended
 libraries               Compiles and installs all libraries in the
-                        current RStudio script
+                        current RStudio script where the word library
+                        is written
 r.args                  Displays all arguments and its values from a
                         selected R function

@@ -1,10 +1,10 @@
 Package: shortcuts
 Type: Package
 Title: Useful Shortcuts to Interact with 'RStudio' Scripts
-Version: 1.1.0
+Version: 1.2.0
 Author: José Carlos Del Valle <jcval94@gmail.com>
 Maintainer: José Carlos Del Valle <jcval94@gmail.com>
-Description: Integrates clipboard copied data in R, reads and installs libraries within a script and returns all valid arguments of a given function.
+Description: Integrates clipboard copied data in R Studio, loads and installs libraries within a R script and returns all valid arguments of a selected function.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -13,4 +13,5 @@ Imports: utils
 RoxygenNote: 6.1.1
 URL: https://github.com/jcval94/shortcuts
 BugReports: https://github.com/jcval94/shortcuts/issues
-Built: R 3.5.3; ; 2019-11-23 15:24:20 UTC; windows
+SystemRequirements: RStudio
+Built: R 3.5.3; ; 2019-11-28 15:30:31 UTC; windows
