@@ -13,14 +13,14 @@ A data frame object named "x" in .GlobalEnv
 A function to import copied data in RStudio via clipboard, the use of Addins is also highly recommended
 }
 \examples{
+\donttest{
+# Copy (Ctrl+C) a excel/google sheets/ online table such as the table:
+# https://en.wikipedia.org/wiki/Standard_normal_table
 
-#Copy (Ctrl+C) a excel/google sheets/ online table such as the table:
-#https://en.wikipedia.org/wiki/Standard_normal_table
-
-#Then push Addins -> shortcuts / Copy Paste or Run the following code:
+# Then push Addins -> shortcuts / Copy Paste or Run the following code:
+}
 copypaste()
 
-#Check your data
 if("x" \%in\% ls()){x}
 
 }

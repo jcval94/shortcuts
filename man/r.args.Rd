@@ -13,13 +13,9 @@ arguments ready to run
 Displays all arguments and its values from a selected R function
 }
 \examples{
-
-#Copy and paste the following code in RStudio
-
-#Select the following line of code & push Addins -> shortcuts / Read Arguments
+\donttest{
+# Copy and paste the examle's code in RStudio. Select the following line of code & push Addins -> shortcuts / Read Arguments
+}
 rnorm(n=100)
-
-#The result is shown in the line under the selected code
-#n=100;mean=1;sd=0
 
 }
