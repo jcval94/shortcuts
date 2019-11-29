@@ -4,8 +4,9 @@
 #'
 #' @examples
 #' \donttest{
-#' # Copy and paste the examle's code in RStudio. Select the following line of code & push Addins -> shortcuts / Read Arguments
+#' # Copy and paste the function in RStudio, select the text and push Addins/Read Arguments
 #' }
+#' 
 #' rnorm(n=100)
 #' 
 r.args<-function(){
