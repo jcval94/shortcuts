@@ -14,8 +14,9 @@ Displays all arguments and its values from a selected R function
 }
 \examples{
 \donttest{
-# Copy and paste the examle's code in RStudio. Select the following line of code & push Addins -> shortcuts / Read Arguments
+# Copy and paste the function in RStudio, select the text and push Addins/Read Arguments
 }
+
 rnorm(n=100)
 
 }
