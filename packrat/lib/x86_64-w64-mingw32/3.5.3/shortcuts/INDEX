@@ -1,3 +1,5 @@
+clear.code              Creates a file copying current code without
+                        comments and tabuations
 copypaste               A function to import copied data in RStudio via
                         clipboard, the use of Addins is also highly
                         recommended
