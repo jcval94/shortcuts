@@ -9,7 +9,7 @@
 #'
 #' @examples
 #'
-#'#' \donttest{
+#' \donttest{
 #' # Copy and paste all the following code in RStudio
 #' }
 #' 1+1
@@ -23,7 +23,7 @@ clear.code <- function(){
         file_w <- file("new.R")
         writeLines(((contenido)),file_w)
         writeLines(as.character(parse("new.R")),file_w)
-        file.edit("new.R")
+        utils::file.edit("new.R")
     }
     return(invisible())
 }

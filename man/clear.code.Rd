@@ -14,7 +14,7 @@ Creates a file copying current code without comments and tabuations
 }
 \examples{
 
-#' \donttest{
+\donttest{
 # Copy and paste all the following code in RStudio
 }
 1+1
