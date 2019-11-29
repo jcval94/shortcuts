@@ -12,3 +12,8 @@ Name: Libraries
 Description: Run all libraries in a R document
 Binding: libraries
 Interactive: false
+
+Name: Clear Code
+Description: Remove comments and add tabulation
+Binding: clear.code
+Interactive: false
