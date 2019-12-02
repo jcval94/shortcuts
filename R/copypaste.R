@@ -24,7 +24,7 @@ copypaste<-function(){
   if (!inherits(ctx,"try-error")){
     assign_to_global <- function(pos=1){
       df<-try(utils::read.table("clipboard"),silent=TRUE)
-      if(inherits(df,"try-error")){
+      if(!inherits(df,"try-error")){
         assign("x", df, envir=as.environment(pos))
       }
     }
