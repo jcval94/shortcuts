@@ -8,3 +8,6 @@ libraries               Compiles and installs all libraries in the
                         is written
 r.args                  Displays all arguments and its values from a
                         selected R function
+read.all                Read all documents in a folder and subfolders
+                        assigning them to the global environment; just
+                        extensions ".txt" and ".csv" are allowed

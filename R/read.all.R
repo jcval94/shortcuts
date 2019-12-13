@@ -12,9 +12,6 @@
 #' @examples
 #'
 #'
-#' #create folder
-#'
-#' #create file
 #' lib<-getwd()
 #'
 #' read.all(lib)
