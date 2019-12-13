@@ -17,3 +17,8 @@ Name: Clear Code
 Description: Remove comments and add tabulation
 Binding: clear.code
 Interactive: false
+
+Name: Read All Docs
+Description: Read all csv and txt files in the current directory
+Binding: read.all
+Interactive: false
