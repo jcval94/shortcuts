@@ -5,10 +5,6 @@
 #' @return data frame objects
 #' @export
 #'
-#' @importFrom purrr map_int
-#' @importFrom purrr map
-#'
-#'
 #' @examples
 #'
 #'
@@ -19,8 +15,8 @@
 #'
 read.all <- function(dir = getwd()) {
     lt <- list.files(dir)
-    SPL <- do.call(c, purrr::map(lt, ~strsplit(.x, ".", fixed = TRUE)))
-    len <- purrr::map_int(SPL, ~unlist(length(.x)))
+    SPL <- do.call(c, lapply(lt, function(x)strsplit(x, ".", fixed = TRUE)))
+    len <- sapply(SPL,function(x) unlist(length(x)))
     Reed <- lt[len > 1]
     Repeat <- lt[len == 1]
     if (length(Repeat) > 0) {

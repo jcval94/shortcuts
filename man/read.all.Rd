@@ -18,9 +18,6 @@ Read all documents in a folder and subfolders assigning them to the global envir
 \examples{
 
 
-#create folder
-
-#create file
 lib<-getwd()
 
 read.all(lib)
