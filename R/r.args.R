@@ -48,7 +48,6 @@ r.args<-function(){
             }
             sr[c1[ss2]]<-"?"
             fun[2]<-paste0(sr,collapse = "")
-            
             values<-strsplit(fun[2],",")[[1]]
             values<-gsub("[?]",",",values)
             values<-gsub("==","?",values)
