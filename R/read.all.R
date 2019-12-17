@@ -27,7 +27,7 @@ read.all <- function(dir = getwd()) {
         csv <- Reed[endsWith(Reed, "csv")]
         dir_txt <- paste0(dir, "/", txt)
         dir_csv <- paste0(dir, "/", csv)
-        readd <- function(tt, dir_) {
+        readd <- function(tt, dir_,pos=1) {
             i <- 0
             if (length(tt) > 0) {
                 for (t in 1:length(tt)) {
@@ -37,7 +37,7 @@ read.all <- function(dir = getwd()) {
                   if (!inherits(Leer,"try-error")) {
                     Leer <- "Reading error"
                   }
-                  return(assign(x = substr(cname, 1, nchar(cname) - 4), value = Leer, envir = globalenv()))
+                  assign(x = substr(cname, 1, nchar(cname) - 4), value = Leer, envir = as.environment(pos))
                 }
             }
         }
