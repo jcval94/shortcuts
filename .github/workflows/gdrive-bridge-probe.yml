@@ -1,116 +1,164 @@
-name: Google Drive Bridge Probe
+name: Google Drive Raw Bridge Probe
 
 on:
-  schedule:
-    - cron: "20 21 1 10 *"
+  push:
+    paths:
+      - ".github/workflows/gdrive-bridge-probe.yml"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  probe:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.run_started_at >= '2026-10-01T21:15:00Z' }}
+  consume:
     runs-on: ubuntu-latest
     env:
-      PROBE_NAME: AI-News-Daily Transport Probe 2026-10-01 15-15
-      PROBE_MARKER: AI_NEWS_GDRIVE_BRIDGE_PROBE_2026-10-01_1515
-    steps:
-      - name: Guard probe date
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ "$(date -u +%Y-%m-%d)" != "2026-10-01" && "${{ github.event_name }}" != "workflow_dispatch" ]]; then
-            echo "Outside one-time probe date; exiting."
-            exit 0
-          fi
+      INBOX_FOLDER_ID: 1bPEr91j4HDGihnDbcCtoBPFWCW2RPYQ_
+      PROCESSED_FOLDER_ID: 1o-2WPz514dFJDg7seGz2dZ4X87doPkdK
+      FAILED_FOLDER_ID: 1m03IN_GY0rJgpz_gXtwm1by91GcSOuZz
+      FILE_PREFIX: ai-news-daily__
 
-      - name: Check Google Drive credentials
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Drive credential
         shell: bash
         env:
-          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
-          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
-          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
         run: |
           set -euo pipefail
-          missing=0
-          for key in GDRIVE_CLIENT_ID GDRIVE_CLIENT_SECRET GDRIVE_REFRESH_TOKEN; do
-            if [[ -z "${!key:-}" ]]; then
-              echo "::error::Missing required secret: $key"
-              missing=1
-            fi
-          done
-          if [[ "$missing" -ne 0 ]]; then
-            echo "::error::GitHub Actions cannot read a private Google Drive file without Drive credentials."
+          if [[ -z "${GDRIVE_SERVICE_ACCOUNT_JSON:-}" ]]; then
+            echo "::error::Missing required secret: GDRIVE_SERVICE_ACCOUNT_JSON"
             exit 2
           fi
 
-      - name: Exchange refresh token
-        id: auth
-        shell: bash
-        env:
-          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
-          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
-          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
-        run: |
-          set -euo pipefail
-          response=$(curl --fail-with-body -sS https://oauth2.googleapis.com/token \
-            -d client_id="$GDRIVE_CLIENT_ID" \
-            -d client_secret="$GDRIVE_CLIENT_SECRET" \
-            -d refresh_token="$GDRIVE_REFRESH_TOKEN" \
-            -d grant_type=refresh_token)
-          token=$(python -c 'import json,sys; print(json.load(sys.stdin)["access_token"])' <<<"$response")
-          echo "::add-mask::$token"
-          echo "token=$token" >> "$GITHUB_OUTPUT"
-
-      - name: Find staged Google Doc
-        id: find
-        shell: bash
-        env:
-          ACCESS_TOKEN: ${{ steps.auth.outputs.token }}
-        run: |
-          set -euo pipefail
-          q="name='$PROBE_NAME' and trashed=false"
-          response=$(curl --fail-with-body -sS -G \
-            -H "Authorization: Bearer $ACCESS_TOKEN" \
-            --data-urlencode "q=$q" \
-            --data-urlencode "fields=files(id,name,mimeType,modifiedTime)" \
-            --data-urlencode "orderBy=modifiedTime desc" \
-            --data-urlencode "pageSize=10" \
-            https://www.googleapis.com/drive/v3/files)
-          python - <<'PY' <<<"$response" > /tmp/file_id
-import json,sys
-data=json.load(sys.stdin)
-files=data.get("files",[])
-if not files:
-    raise SystemExit("No Drive staging file found")
-f=files[0]
-if f.get("mimeType") != "application/vnd.google-apps.document":
-    raise SystemExit(f"Unexpected mimeType: {f.get('mimeType')}")
-print(f["id"])
-PY
-          file_id=$(cat /tmp/file_id)
-          echo "file_id=$file_id" >> "$GITHUB_OUTPUT"
-
-      - name: Export and validate payload
-        shell: bash
-        env:
-          ACCESS_TOKEN: ${{ steps.auth.outputs.token }}
-          FILE_ID: ${{ steps.find.outputs.file_id }}
-        run: |
-          set -euo pipefail
-          mkdir -p bridge-output
-          curl --fail-with-body -sS -G \
-            -H "Authorization: Bearer $ACCESS_TOKEN" \
-            --data-urlencode "mimeType=text/plain" \
-            "https://www.googleapis.com/drive/v3/files/$FILE_ID/export" \
-            -o bridge-output/payload.txt
-          grep -Fq "$PROBE_MARKER" bridge-output/payload.txt
-          printf '{"status":"pass","source":"google_drive","file_id":"%s","marker":"%s"}\n' "$FILE_ID" "$PROBE_MARKER" > bridge-output/result.json
-
-      - name: Upload proof artifact
-        uses: actions/upload-artifact@v4
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
         with:
-          name: gdrive-bridge-probe
-          path: bridge-output/
-          retention-days: 7
+          credentials_json: '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}'
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Consume one staged raw payload
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          access_token="$(gcloud auth print-access-token)"
+          echo "::add-mask::$access_token"
+
+          query="'$INBOX_FOLDER_ID' in parents and trashed=false and mimeType='text/plain' and name contains '$FILE_PREFIX'"
+          response="$(curl --fail-with-body -sS -G             -H "Authorization: Bearer $access_token"             --data-urlencode "q=$query"             --data-urlencode "fields=files(id,name,createdTime)"             --data-urlencode "orderBy=createdTime asc"             --data-urlencode "pageSize=10"             "https://www.googleapis.com/drive/v3/files")"
+
+          python - "$response" <<'PY' > /tmp/selected.env
+import json
+import shlex
+import sys
+
+data = json.loads(sys.argv[1])
+files = data.get("files", [])
+if not files:
+    print("FOUND=0")
+    raise SystemExit(0)
+
+f = files[0]
+print("FOUND=1")
+print("FILE_ID=" + shlex.quote(f["id"]))
+print("FILE_NAME=" + shlex.quote(f["name"]))
+PY
+
+          source /tmp/selected.env
+          if [[ "$FOUND" != "1" ]]; then
+            echo "No pending raw bridge payloads."
+            exit 0
+          fi
+
+          echo "Consuming Drive file: $FILE_NAME ($FILE_ID)"
+          curl --fail-with-body -sS             -H "Authorization: Bearer $access_token"             "https://www.googleapis.com/drive/v3/files/$FILE_ID?alt=media"             -o /tmp/bridge-envelope.txt
+
+          set +e
+          python - /tmp/bridge-envelope.txt "$GITHUB_REPOSITORY" <<'PY'
+import base64
+import hashlib
+import json
+import pathlib
+import sys
+
+envelope_path = pathlib.Path(sys.argv[1])
+expected_repo = sys.argv[2]
+lines = envelope_path.read_text(encoding="utf-8").splitlines()
+
+env = {}
+for raw_line in lines:
+    line = raw_line.strip()
+    if not line:
+        continue
+    if "=" not in line:
+        raise SystemExit(f"Malformed envelope line: {line!r}")
+    key, value = line.split("=", 1)
+    if key in env:
+        raise SystemExit(f"Duplicate envelope key: {key}")
+    env[key] = value
+
+required = {"format", "sha256", "target_repo", "target_path", "payload_b64"}
+missing = required - env.keys()
+if missing:
+    raise SystemExit(f"Missing envelope fields: {sorted(missing)}")
+if env["format"] != "base64-json-v1":
+    raise SystemExit("Unsupported envelope format")
+if env["target_repo"] != expected_repo:
+    raise SystemExit(f"target_repo mismatch: {env['target_repo']} != {expected_repo}")
+
+target = pathlib.PurePosixPath(env["target_path"])
+if target.is_absolute() or ".." in target.parts:
+    raise SystemExit("Unsafe target_path")
+if not target.parts or target.parts[0] != "bridge-consumed" or target.suffix != ".json":
+    raise SystemExit("target_path must be bridge-consumed/*.json")
+
+try:
+    payload = base64.b64decode(env["payload_b64"], validate=True)
+except Exception as exc:
+    raise SystemExit(f"Invalid base64 payload: {exc}")
+
+actual_sha = hashlib.sha256(payload).hexdigest()
+if actual_sha != env["sha256"]:
+    raise SystemExit(f"SHA mismatch: {actual_sha} != {env['sha256']}")
+
+data = json.loads(payload.decode("utf-8"))
+if data.get("target_repo") != expected_repo:
+    raise SystemExit("Decoded JSON target_repo mismatch")
+if data.get("target_path") != env["target_path"]:
+    raise SystemExit("Decoded JSON target_path mismatch")
+if data.get("status") != "ready":
+    raise SystemExit("Decoded JSON status must be ready")
+
+out = pathlib.Path(env["target_path"])
+out.parent.mkdir(parents=True, exist_ok=True)
+out.write_bytes(payload + b"\n")
+print(f"Validated and materialized {out} sha256={actual_sha}")
+PY
+          validation_status=$?
+          set -e
+
+          if [[ "$validation_status" -ne 0 ]]; then
+            echo "::error::Payload validation failed; moving Drive file to failed."
+            curl --fail-with-body -sS -X PATCH               -H "Authorization: Bearer $access_token"               -H "Content-Type: application/json"               -G               --data-urlencode "addParents=$FAILED_FOLDER_ID"               --data-urlencode "removeParents=$INBOX_FOLDER_ID"               --data-urlencode "fields=id,name,parents"               "https://www.googleapis.com/drive/v3/files/$FILE_ID" >/dev/null
+            exit "$validation_status"
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bridge-consumed/
+
+          if git diff --cached --quiet; then
+            echo "Decoded payload already materialized; no commit needed."
+          else
+            git commit -m "test: consume Google Drive raw bridge payload"
+            git push
+          fi
+
+          curl --fail-with-body -sS -X PATCH             -H "Authorization: Bearer $access_token"             -H "Content-Type: application/json"             -G             --data-urlencode "addParents=$PROCESSED_FOLDER_ID"             --data-urlencode "removeParents=$INBOX_FOLDER_ID"             --data-urlencode "fields=id,name,parents"             "https://www.googleapis.com/drive/v3/files/$FILE_ID" >/dev/null
+
+          echo "Bridge payload processed successfully: $FILE_NAME"
