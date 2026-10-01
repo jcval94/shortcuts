@@ -1,4 +1,4 @@
-name: Google Drive Bridge Smoke
+name: Google Drive Bridge Auth Smoke
 
 on:
   push:
@@ -10,10 +10,34 @@ permissions:
   contents: read
 
 jobs:
-  smoke:
+  auth-smoke:
     runs-on: ubuntu-latest
     steps:
-      - name: Smoke
-        run: echo "github-actions-smoke=pass"
+      - name: Check Drive credential
+        shell: bash
+        env:
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${GDRIVE_SERVICE_ACCOUNT_JSON:-}" ]]; then
+            echo "::error::Missing required secret: GDRIVE_SERVICE_ACCOUNT_JSON"
+            exit 2
+          fi
+          echo "secret_present=yes"
 
-# trigger: smoke-v2
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}'
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Verify access token
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(gcloud auth print-access-token)"
+          [[ -n "$token" ]]
+          echo "::add-mask::$token"
+          echo "google_auth=pass"
