@@ -1,43 +1,208 @@
-name: Google Drive Bridge Auth Smoke
+name: Google Drive Raw Bridge Consumer
 
 on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
   push:
     paths:
       - ".github/workflows/gdrive-bridge-probe.yml"
-  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  auth-smoke:
+  consume:
     runs-on: ubuntu-latest
+    env:
+      INBOX_FOLDER_ID: 1bPEr91j4HDGihnDbcCtoBPFWCW2RPYQ_
+      PROCESSED_FOLDER_ID: 1o-2WPz514dFJDg7seGz2dZ4X87doPkdK
+      FAILED_FOLDER_ID: 1m03IN_GY0rJgpz_gXtwm1by91GcSOuZz
+      FILE_PREFIX: ai-news-daily__
+
     steps:
-      - name: Check Drive credential
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect Drive credential
+        id: credential
         shell: bash
         env:
           GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
         run: |
           set -euo pipefail
           if [[ -z "${GDRIVE_SERVICE_ACCOUNT_JSON:-}" ]]; then
-            echo "::error::Missing required secret: GDRIVE_SERVICE_ACCOUNT_JSON"
-            exit 2
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::GDRIVE_SERVICE_ACCOUNT_JSON is not configured; consumer is idle."
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
           fi
-          echo "secret_present=yes"
 
       - name: Authenticate to Google Cloud
+        if: steps.credential.outputs.present == 'true'
         uses: google-github-actions/auth@v3
         with:
           credentials_json: '${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}'
 
       - name: Set up gcloud
+        if: steps.credential.outputs.present == 'true'
         uses: google-github-actions/setup-gcloud@v3
 
-      - name: Verify access token
+      - name: Select oldest pending TXT
+        if: steps.credential.outputs.present == 'true'
+        id: select
         shell: bash
         run: |
           set -euo pipefail
           token="$(gcloud auth print-access-token)"
-          [[ -n "$token" ]]
           echo "::add-mask::$token"
-          echo "google_auth=pass"
+          query="'$INBOX_FOLDER_ID' in parents and trashed=false and mimeType='text/plain' and name contains '$FILE_PREFIX'"
+          curl --fail-with-body -sS -G \
+            -H "Authorization: Bearer $token" \
+            --data-urlencode "q=$query" \
+            --data-urlencode "fields=files(id,name,createdTime)" \
+            --data-urlencode "orderBy=createdTime asc" \
+            --data-urlencode "pageSize=10" \
+            "https://www.googleapis.com/drive/v3/files" > /tmp/drive-list.json
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          data = json.loads(Path('/tmp/drive-list.json').read_text())
+          files = data.get('files', [])
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as out:
+              if files:
+                  print(f"file_id={files[0]['id']}", file=out)
+                  print(f"file_name={files[0]['name']}", file=out)
+              else:
+                  print('file_id=', file=out)
+                  print('file_name=', file=out)
+          PY
+
+      - name: Download selected TXT
+        if: steps.select.outputs.file_id != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(gcloud auth print-access-token)"
+          echo "::add-mask::$token"
+          curl --fail-with-body -sS \
+            -H "Authorization: Bearer $token" \
+            "https://www.googleapis.com/drive/v3/files/${{ steps.select.outputs.file_id }}?alt=media" \
+            -o /tmp/bridge-envelope.txt
+
+      - name: Validate envelope and materialize JSON
+        if: steps.select.outputs.file_id != ''
+        id: validate
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - "$GITHUB_REPOSITORY" <<'PY'
+          import base64
+          import hashlib
+          import json
+          import pathlib
+          import sys
+
+          expected_repo = sys.argv[1]
+          lines = pathlib.Path('/tmp/bridge-envelope.txt').read_text(encoding='utf-8').splitlines()
+          env = {}
+          for raw_line in lines:
+              line = raw_line.strip()
+              if not line:
+                  continue
+              if '=' not in line:
+                  raise SystemExit(f'Malformed envelope line: {line!r}')
+              key, value = line.split('=', 1)
+              if key in env:
+                  raise SystemExit(f'Duplicate envelope key: {key}')
+              env[key] = value
+
+          required = {'format', 'sha256', 'target_repo', 'target_path', 'payload_b64'}
+          missing = required - env.keys()
+          if missing:
+              raise SystemExit(f'Missing envelope fields: {sorted(missing)}')
+          if env['format'] != 'base64-json-v1':
+              raise SystemExit('Unsupported envelope format')
+          if env['target_repo'] != expected_repo:
+              raise SystemExit(f"target_repo mismatch: {env['target_repo']} != {expected_repo}")
+
+          target = pathlib.PurePosixPath(env['target_path'])
+          if target.is_absolute() or '..' in target.parts:
+              raise SystemExit('Unsafe target_path')
+          if not target.parts or target.parts[0] != 'bridge-consumed' or target.suffix != '.json':
+              raise SystemExit('Probe target_path must be bridge-consumed/*.json')
+
+          try:
+              payload = base64.b64decode(env['payload_b64'], validate=True)
+          except Exception as exc:
+              raise SystemExit(f'Invalid base64 payload: {exc}')
+
+          actual_sha = hashlib.sha256(payload).hexdigest()
+          if actual_sha != env['sha256']:
+              raise SystemExit(f"SHA mismatch: {actual_sha} != {env['sha256']}")
+
+          data = json.loads(payload.decode('utf-8'))
+          if data.get('target_repo') != expected_repo:
+              raise SystemExit('Decoded JSON target_repo mismatch')
+          if data.get('target_path') != env['target_path']:
+              raise SystemExit('Decoded JSON target_path mismatch')
+          if data.get('status') != 'ready':
+              raise SystemExit('Decoded JSON status must be ready')
+
+          out = pathlib.Path(env['target_path'])
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_bytes(payload + b'\n')
+          print(f'validated={out} sha256={actual_sha}')
+          PY
+
+      - name: Move invalid payload to failed
+        if: steps.select.outputs.file_id != '' && steps.validate.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(gcloud auth print-access-token)"
+          curl --fail-with-body -sS -X PATCH -G \
+            -H "Authorization: Bearer $token" \
+            --data-urlencode "addParents=$FAILED_FOLDER_ID" \
+            --data-urlencode "removeParents=$INBOX_FOLDER_ID" \
+            --data-urlencode "fields=id,name,parents" \
+            "https://www.googleapis.com/drive/v3/files/${{ steps.select.outputs.file_id }}" >/dev/null
+
+      - name: Fail invalid payload
+        if: steps.select.outputs.file_id != '' && steps.validate.outcome == 'failure'
+        run: exit 1
+
+      - name: Commit materialized JSON
+        if: steps.select.outputs.file_id != '' && steps.validate.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bridge-consumed/
+          if git diff --cached --quiet; then
+            echo "Payload already materialized; no commit needed."
+          else
+            git commit -m "test: consume Google Drive raw bridge payload"
+            git push
+          fi
+
+      - name: Move consumed payload to processed
+        if: steps.select.outputs.file_id != '' && steps.validate.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(gcloud auth print-access-token)"
+          curl --fail-with-body -sS -X PATCH -G \
+            -H "Authorization: Bearer $token" \
+            --data-urlencode "addParents=$PROCESSED_FOLDER_ID" \
+            --data-urlencode "removeParents=$INBOX_FOLDER_ID" \
+            --data-urlencode "fields=id,name,parents" \
+            "https://www.googleapis.com/drive/v3/files/${{ steps.select.outputs.file_id }}" >/dev/null
+
+      - name: Report idle queue
+        if: steps.credential.outputs.present == 'true' && steps.select.outputs.file_id == ''
+        run: echo "No pending raw bridge payloads."
