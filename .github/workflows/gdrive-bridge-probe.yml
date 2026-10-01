@@ -1,0 +1,116 @@
+name: Google Drive Bridge Probe
+
+on:
+  schedule:
+    - cron: "20 21 1 10 *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.run_started_at >= '2026-10-01T21:15:00Z' }}
+    runs-on: ubuntu-latest
+    env:
+      PROBE_NAME: AI-News-Daily Transport Probe 2026-10-01 15-15
+      PROBE_MARKER: AI_NEWS_GDRIVE_BRIDGE_PROBE_2026-10-01_1515
+    steps:
+      - name: Guard probe date
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$(date -u +%Y-%m-%d)" != "2026-10-01" && "${{ github.event_name }}" != "workflow_dispatch" ]]; then
+            echo "Outside one-time probe date; exiting."
+            exit 0
+          fi
+
+      - name: Check Google Drive credentials
+        shell: bash
+        env:
+          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
+          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
+          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for key in GDRIVE_CLIENT_ID GDRIVE_CLIENT_SECRET GDRIVE_REFRESH_TOKEN; do
+            if [[ -z "${!key:-}" ]]; then
+              echo "::error::Missing required secret: $key"
+              missing=1
+            fi
+          done
+          if [[ "$missing" -ne 0 ]]; then
+            echo "::error::GitHub Actions cannot read a private Google Drive file without Drive credentials."
+            exit 2
+          fi
+
+      - name: Exchange refresh token
+        id: auth
+        shell: bash
+        env:
+          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
+          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
+          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
+        run: |
+          set -euo pipefail
+          response=$(curl --fail-with-body -sS https://oauth2.googleapis.com/token \
+            -d client_id="$GDRIVE_CLIENT_ID" \
+            -d client_secret="$GDRIVE_CLIENT_SECRET" \
+            -d refresh_token="$GDRIVE_REFRESH_TOKEN" \
+            -d grant_type=refresh_token)
+          token=$(python -c 'import json,sys; print(json.load(sys.stdin)["access_token"])' <<<"$response")
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Find staged Google Doc
+        id: find
+        shell: bash
+        env:
+          ACCESS_TOKEN: ${{ steps.auth.outputs.token }}
+        run: |
+          set -euo pipefail
+          q="name='$PROBE_NAME' and trashed=false"
+          response=$(curl --fail-with-body -sS -G \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            --data-urlencode "q=$q" \
+            --data-urlencode "fields=files(id,name,mimeType,modifiedTime)" \
+            --data-urlencode "orderBy=modifiedTime desc" \
+            --data-urlencode "pageSize=10" \
+            https://www.googleapis.com/drive/v3/files)
+          python - <<'PY' <<<"$response" > /tmp/file_id
+import json,sys
+data=json.load(sys.stdin)
+files=data.get("files",[])
+if not files:
+    raise SystemExit("No Drive staging file found")
+f=files[0]
+if f.get("mimeType") != "application/vnd.google-apps.document":
+    raise SystemExit(f"Unexpected mimeType: {f.get('mimeType')}")
+print(f["id"])
+PY
+          file_id=$(cat /tmp/file_id)
+          echo "file_id=$file_id" >> "$GITHUB_OUTPUT"
+
+      - name: Export and validate payload
+        shell: bash
+        env:
+          ACCESS_TOKEN: ${{ steps.auth.outputs.token }}
+          FILE_ID: ${{ steps.find.outputs.file_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p bridge-output
+          curl --fail-with-body -sS -G \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            --data-urlencode "mimeType=text/plain" \
+            "https://www.googleapis.com/drive/v3/files/$FILE_ID/export" \
+            -o bridge-output/payload.txt
+          grep -Fq "$PROBE_MARKER" bridge-output/payload.txt
+          printf '{"status":"pass","source":"google_drive","file_id":"%s","marker":"%s"}\n' "$FILE_ID" "$PROBE_MARKER" > bridge-output/result.json
+
+      - name: Upload proof artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gdrive-bridge-probe
+          path: bridge-output/
+          retention-days: 7
